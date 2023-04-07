@@ -1,17 +1,22 @@
 let timerValue = 0;
 let timerInterval = null;
+let tab = null;
+
+const getCurrentTab = async () => { 
+  const [newTab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+  tab = newTab;
+  console.log(tab);
+}
 
 const updateTimer = () => {
   timerValue++;
   chrome.storage.local.set({ time : timerValue });
-  try {
-    chrome.runtime.sendMessage({ type: "timerValue", value: timerValue });
-  } catch (error) {
-    console.log("Error: ", error);
-  }
+  chrome.runtime.sendMessage({ type: "timerValue", value: timerValue });
+  chrome.tabs.sendMessage(tab.id, { type: "timerValue", value: timerValue });
 }
 
 const startTimer = () => {
+  getCurrentTab();
   timerInterval = setInterval(updateTimer, 1000);
 }
 
@@ -24,27 +29,19 @@ const resetTimer = () => {
   stopTimer();
   chrome.storage.local.set({ time : 0 });
   chrome.runtime.sendMessage({ type: "timerValue", value: timerValue });
+  chrome.tabs.sendMessage(tab.id, { type: "timerValue", value: timerValue });
 }
 
-// Send stopped time to popup.js not working
-const sendStoppedTime = () => {
-  chrome.runtime.sendMessage({ type: "stoppedTime", value: timerValue });
-}
-
-chrome.runtime.onMessage.addListener(function(message) {
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "startTimer") {
     startTimer();
-    chrome.runtime.sendResponse({executed: "startTimer"});
+    sendResponse({executed: "startTimer"});
   } else if (message.type === "stopTimer") {
     stopTimer();
-    chrome.runtime.sendResponse({executed: "stopTimer"});
+    sendResponse({executed: "stopTimer"});
   } else if (message.type === "resetTimer") {
     resetTimer();
-    chrome.runtime.sendResponse({executed: "resetTimer"});
-  } else if (message.type === "stoppedTimeGetter") {
-    sendStoppedTime();
-  }else {
-    console.log(message);
-    }
+    sendResponse({executed: "resetTimer"});
+  } 
 });
 

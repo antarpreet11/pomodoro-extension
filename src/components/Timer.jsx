@@ -6,50 +6,50 @@ const Timer = () => {
     const [isRunning, setIsRunning] = useState(false);
 
     chrome.runtime.onMessage.addListener(
-        function(request, sender, sendResponse) {
-            console.log(request.type);
-            if (request.type === "timerValue") {
-                setTimerValue(request.value);
-                if (request.value > 0 && !isRunning) {
-                    setIsRunning(true);
-                }
-            } else if (request.type === "stoppedTime") {
-                setTimerValue(request.value);
-                setIsRunning(false);
-            }
-        }
+      (request, sender, sendResponse) => {
+          if (request.type === "timerValue") {
+              setTimerValue(request.value);
+              if (request.value > 0 && !isRunning) {
+                  setIsRunning(true);
+              }
+          }
+      }
     );
 
     const startTimer = async () => {
-        setIsRunning(true);
-        const response = await chrome.runtime.sendMessage({ type: "startTimer" });
-        console.log(response);
+      setIsRunning(true);
+      const response = await chrome.runtime.sendMessage({ type: "startTimer" });
+      console.log(response);
     }
 
     const stopTimer = async () => {
-        setIsRunning(false);
-        const response = await chrome.runtime.sendMessage({ type: "stopTimer" });
-        console.log(response)
+      setIsRunning(false);
+      const response = await chrome.runtime.sendMessage({ type: "stopTimer" });
+      console.log(response)
     }
 
     const resetTimer = async () => {
-        setTimerValue(0);
-        setIsRunning(false);
-        const response = await chrome.runtime.sendMessage({ type: "resetTimer" });
-        console.log(response);
+      setTimerValue(0);
+      setIsRunning(false);
+      const response = await chrome.runtime.sendMessage({ type: "resetTimer" });
+      console.log(response);
     }
 
     const progressBarStyle = {
-        width: `${(timerValue / 60) * 100}%`
+      width: `${(timerValue / 60) * 100}%`
     };
 
     const stoppedTimeGetter = async () => {
-        const response = await chrome.runtime.sendMessage({ type: "stoppedTimeGetter" });
+      const data = await chrome.storage.local.get(["time"]);
+      console.log("Stored time: %o", data.time);
+      if (data.time) {
+        setTimerValue(data.time);
+      }
     }
 
     useEffect(() => {
-        stoppedTimeGetter();
-    });
+      stoppedTimeGetter();
+    }, []);
 
   return (
     <div className="popup">
