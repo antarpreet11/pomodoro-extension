@@ -6,6 +6,9 @@
     timerBox.className = "timer-box-pomodummy";
     document.body.appendChild(timerBox);
   }
+  timerBox.addEventListener("click", () => {
+    timerBox.remove();
+  });
   
   chrome.runtime.onMessage.addListener(
     (request) => {

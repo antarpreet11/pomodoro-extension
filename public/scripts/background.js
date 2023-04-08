@@ -2,9 +2,16 @@ let timerValue = 0;
 let timerInterval = null;
 let currentTabId = null;
 
-const getCurrentTab = async () => { 
-  const [newTab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
-  currentTabId = newTab.id;
+const getCurrentTab = async (windowId) => { 
+  if (windowId) {
+    const [newTab] = await chrome.tabs.query({active: true, windowId: windowId});
+    currentTabId = newTab.id;
+  } else {
+    const [newTab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
+    if (currentTabId != newTab.id) {
+      currentTabId = newTab.id;
+    }
+  }
 }
 
 const updateTimer = () => {
@@ -32,11 +39,19 @@ const resetTimer = () => {
 }
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  currentTabId = tabId;
+  if (currentTabId != tabId) {
+    currentTabId = tabId;
+  }
 });
 
 chrome.tabs.onActivated.addListener((activeInfo) => {
-  currentTabId = activeInfo.tabId;
+  if(currentTabId != activeInfo.tabId) {
+    currentTabId = activeInfo.tabId;
+  }
+});
+
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  getCurrentTab(windowId);
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
