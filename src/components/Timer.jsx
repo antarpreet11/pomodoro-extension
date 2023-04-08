@@ -2,16 +2,19 @@ import React, { useState, useEffect } from 'react';
 import './timer.css';
 
 const Timer = () => {
-    const [timerValue, setTimerValue] = useState(0);
+    const [timerValue, setTimerValue] = useState('00:00');
     const [isRunning, setIsRunning] = useState(false);
 
     chrome.runtime.onMessage.addListener(
       (request, sender, sendResponse) => {
           if (request.type === "timerValue") {
-              setTimerValue(request.value);
-              if (request.value > 0 && !isRunning) {
-                  setIsRunning(true);
-              }
+            const seconds = request.value;
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            setTimerValue(`${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`);
+            if (request.value > 0 && !isRunning) {
+                setIsRunning(true);
+            }
           }
       }
     );
@@ -29,33 +32,36 @@ const Timer = () => {
     }
 
     const resetTimer = async () => {
-      setTimerValue(0);
+      setTimerValue('00:00');
       setIsRunning(false);
       const response = await chrome.runtime.sendMessage({ type: "resetTimer" });
       console.log(response);
     }
 
     const progressBarStyle = {
-      width: `${(timerValue / 60) * 100}%`
+      width: `${(parseInt(timerValue.split(':')[1]) / 60) * 100}%`
     };
 
     const stoppedTimeGetter = async () => {
       const data = await chrome.storage.local.get(["time"]);
-      console.log("Stored time: %o", data.time);
       if (data.time) {
-        setTimerValue(data.time);
+        const seconds = data.time;
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        setTimerValue(`${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`);
       }
     }
 
     useEffect(() => {
       stoppedTimeGetter();
     }, []);
+    console.log();
 
   return (
     <div className="popup">
       <div className="timer-progress">
         <div className="progress-bar" style={progressBarStyle}>
-          <div className="progress-bar-text">{timerValue}s</div>
+          <div className="progress-bar-text">{timerValue}m</div>
         </div>
       </div>
       <div className="timer-controls">

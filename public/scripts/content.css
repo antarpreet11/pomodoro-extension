@@ -1,8 +1,8 @@
 .timer-box-pomodummy {
     position : fixed;
     display: flex;
-    width: 60px;
-    height: 30px;
+    min-width: 50px !important;
+    min-height: 30px !important;
     z-index: 10000;
     
     bottom : 10px;

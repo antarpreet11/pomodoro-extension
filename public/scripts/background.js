@@ -1,18 +1,17 @@
 let timerValue = 0;
 let timerInterval = null;
-let tab = null;
+let currentTabId = null;
 
 const getCurrentTab = async () => { 
   const [newTab] = await chrome.tabs.query({active: true, lastFocusedWindow: true});
-  tab = newTab;
-  console.log(tab);
+  currentTabId = newTab.id;
 }
 
 const updateTimer = () => {
   timerValue++;
   chrome.storage.local.set({ time : timerValue });
   chrome.runtime.sendMessage({ type: "timerValue", value: timerValue });
-  chrome.tabs.sendMessage(tab.id, { type: "timerValue", value: timerValue });
+  chrome.tabs.sendMessage(currentTabId, { type: "timerValue", value: timerValue });
 }
 
 const startTimer = () => {
@@ -29,8 +28,16 @@ const resetTimer = () => {
   stopTimer();
   chrome.storage.local.set({ time : 0 });
   chrome.runtime.sendMessage({ type: "timerValue", value: timerValue });
-  chrome.tabs.sendMessage(tab.id, { type: "timerValue", value: timerValue });
+  chrome.tabs.sendMessage(currentTabId, { type: "timerValue", value: timerValue });
 }
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  currentTabId = tabId;
+});
+
+chrome.tabs.onActivated.addListener((activeInfo) => {
+  currentTabId = activeInfo.tabId;
+});
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "startTimer") {
