@@ -9,15 +9,15 @@
   timerBox.addEventListener("click", () => {
     timerBox.remove();
   });
-  
-  chrome.runtime.onMessage.addListener(
-    (request) => {
-        if (request.type === "timerValue") {
-          const seconds = request.value;
-          const minutes = Math.floor(seconds / 60);
-          const remainingSeconds = seconds % 60;
-          timerBox.innerText = `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
-        }
+
+  chrome.runtime.onMessage.addListener((request) => {
+    if (request.type === "timerValue") {
+      const seconds = request.value;
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      timerBox.innerText = `${minutes
+        .toString()
+        .padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
     }
-  );
+  });
 })();

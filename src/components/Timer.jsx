@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import './timer.css';
+import '../css/timer.css';
+import TimerProgress from './TimerProgress.jsx';
 
 const Timer = () => {
     const [timerValue, setTimerValue] = useState('00:00');
@@ -38,9 +39,6 @@ const Timer = () => {
       console.log(response);
     }
 
-    const progressBarStyle = {
-      width: `${(parseInt(timerValue.split(':')[1]) / 60) * 100}%`
-    };
 
     const stoppedTimeGetter = async () => {
       const data = await chrome.storage.local.get(["time"]);
@@ -59,11 +57,7 @@ const Timer = () => {
 
   return (
     <div className="popup">
-      <div className="timer-progress">
-        <div className="progress-bar" style={progressBarStyle}>
-          <div className="progress-bar-text">{timerValue}m</div>
-        </div>
-      </div>
+      <TimerProgress timerValue={timerValue}></TimerProgress>
       <div className="timer-controls">
         {!isRunning && (
           <button className="start-button" onClick={startTimer}>
@@ -78,7 +72,6 @@ const Timer = () => {
         <button className="reset-button" onClick={resetTimer}>
           Reset
         </button>
-        <div>{timerValue}</div>
       </div>
     </div>
   );
